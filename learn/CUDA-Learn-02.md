@@ -12,7 +12,7 @@
 
 从逻辑的角度来看，一个线程块(block)是若干线程的集合，它们可以被组织为一维、二维或三维布局(方便我们写代码～)；而从硬件角度来看，线程块是**一维线程束**的集合，每32个连续线程组成一个线程束，换句话说就是 硬件会给每一个线程块分配一定数量的线程束，并
 
-> https://bbs.huaweicloud.com/blogs/349996
+> [SM架构理解](https://bbs.huaweicloud.com/blogs/349996)
 
 ### 2.  线程束分化
 
@@ -53,4 +53,4 @@ for(int i=0;i<N;i++)
    sum += nums[i];
 }
 ````
-
+关于CUDA版本写法详见，src/reduce.cu,原理参考[深入浅出GPU优化系列：reduce优化](https://zhuanlan.zhihu.com/p/426978026)

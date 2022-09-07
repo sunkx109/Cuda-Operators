@@ -6,11 +6,10 @@
 
 本节就主要从内存管理角度出发谈一谈内存管理对CUDA 程序运行的影响～
 
-> 暗搓搓的吐槽一下
 
 ### 1  内存模型
 
-![memory_level](CUDA-Learn-03md.assets/memory_level.png)
+![memory_level](CUDA-Learn-03.assets/memory_level.png)
 
 如上图所示，为现代计算机普遍采用的内存结构示意图，从上至下依次为，寄存器(Registers)、缓存(Caches)、主存(Main Memory)和磁盘(Disk Memory)，其中它们的读写速度逐渐降低，存储容量逐渐增大。在这种内存层次结构中，当数据被处理器频繁使用时，该数据保存在低延迟、低容量的存储器中；而当该数据被存储起来以备后用时，数据就存储在高延迟、大容量的存储器中。这种内存层次结构符合大内存低延迟的设想～
 
@@ -25,7 +24,7 @@ CUDA内存模型提出了多种可编程内存的类型：
 * 纹理内存(Texture memory)
 * 全局内存(Global memory)
 
-![avatar](CUDA-Learn-03md.assets/cuda-memory.png)
+![avatar](CUDA-Learn-03.assets/cuda-memory.png)
 
 如上图为这些内存空间的层次结构，每种都有不同的作用域、生命周期和缓存行为。核函数中的每个线程都有自己私有的本地内存(Local memory)；每个线程块都有自己的共享内存，这个共享内存(Shared memory)对同一线程块中所有的线程都可见；所有线程都能访问全局内存(Global memory)，所有线程都能访问的只读空间有：常量内存空间和纹理内存空间。
 
@@ -125,7 +124,7 @@ int main()
 }
 ```
 
-![avatar](CUDA-Learn-03md.assets/global-mem.png)
+![avatar](CUDA-Learn-03.assets/global-mem.png)
 
 关于上述代码需要注意的几点：
 
@@ -158,6 +157,23 @@ int main()
 
 ### 2 内存管理
 
-一般使用`cudaMemcpy`进行内存传输，设备端使用`cudaMalloc`分配内存
+* 固定内存：当从可分页主机内存传输数据到设备内存时，CUDA驱动程序首先分配**临时页面锁定或固定的主机内存**
+* 零拷贝内存：**主机和内存都可以访问的内存**
 
-固定内存：使用`malloc`分配的内存默认是可分页的，
+> [GPU内存(显存)的理解与基本的使用](https://zhuanlan.zhihu.com/p/462191421)
+
+### 3 全局内存访问模式
+
+根据核函数从全局内存中读取数据的方式，主要分为两种：
+
+* 使用一级缓存(从DRAM上加载数据粒度是128字节)
+* 不使用一级缓存(从DRAM上加载数据粒度是32字节)
+
+在优化内存时候，我们要关注以下两个特性：
+
+* 对齐内存访问：当一个内存事务的首个访问地址是缓存粒度(32或128字节)的中的整数倍
+* 合并内存访问：连续访问一个内存块
+
+### 4 共享内存bank冲突问题
+
+同一个线程束中的不同线程，访问同一个bank会导致bank冲突，共享内存一般分为32个bank，每个bank可以有4-8个字节
